@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HLL Artillery Calculator</title>
+
+  <script
+      src="https://code.jquery.com/jquery-3.4.1.min.js"
+      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+      crossorigin="anonymous"></script>
+
+  <style>
+    body {
+      font-size: 300px;
+    }
+
+    #app {
+      color: #ab0000;
+      /*padding: 200px 300px;*/
+    }
+
+    #distance {
+      font-size: 72px;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  ...
+</div>
+
+<script>
+  const TIMEOUT = 5 * 1000;
+
+  function calculate(input) {
+    let m = -0.23703;
+    let b = 1001.46;
+
+    return Math.round(m * input + b);
+  }
+
+  let temp = null;
+  function showResult(distance, result) {
+    $('#app').empty();
+    $('#app').append(`<div id="distance">distance: ${distance}</div>${result}`).hide().fadeIn(750);
+
+    // clearTimeout(temp);
+    // temp = setTimeout(() => {
+    //   $('#app').empty();
+    // }, TIMEOUT);
+  }
+
+  // add speech recognizing
+  const recognizer = new webkitSpeechRecognition();
+
+  recognizer.continuous = true;
+  recognizer.lang = 'ru-Ru';
+
+  recognizer.onresult = function (event) {
+    const result = event.results[event.resultIndex];
+
+    if (result.isFinal) {
+      const words = result[0].transcript.split(/[ ,.]+/);
+
+      console.log(`Words: [${words.join(', ')}]`);
+
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        const parsed = parseInt(word);
+
+        if (!Number.isNaN(parsed)) {
+          const res = calculate(parsed);
+          console.log(`Word: ${word}. Result: ${res}`);
+
+          showResult(parsed, res);
+
+          break;
+        } else if (['хватит'].includes(word)) {
+          console.log('Stopped recognizer');
+          recognizer.stop();
+
+          $('#app').fadeOut(750);
+        }
+      }
+    }
+  };
+
+  recognizer.onend = function () {
+    console.log('END');
+
+    // recognizer.start();
+  };
+
+  recognizer.start();
+</script>
+
+</body>
+</html>
